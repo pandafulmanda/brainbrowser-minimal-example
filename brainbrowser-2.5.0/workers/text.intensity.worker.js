@@ -21,12 +21,36 @@
 */
 
 /*
-* BrainBrowser v2.5.0
-*
-* Author: Tarek Sherif  <tsherif@gmail.com> (http://tareksherif.ca/)
-* Author: Nicolas Kassis
-* Author: Paul Mougel
-*
-* three.js (c) 2010-2014 three.js authors, used under the MIT license
+* @author: Tarek Sherif
+* @author: Nicolas Kassis
 */
-!function(){"use strict";function a(a){var b,c,d,e,f={};for(f.values=new Float32Array(a.trim().split(/\s+/).map(parseFloat)),d=f.values[0],e=f.values[0],b=1,c=f.values.length;c>b;b++)d=Math.min(d,f.values[b]),e=Math.max(e,f.values[b]);return f.min=d,f.max=e,f}self.addEventListener("message",function(b){var c=a(b.data.data);self.postMessage(c,[c.values.buffer])})}();
+
+(function() {
+  "use strict";
+  
+  self.addEventListener("message", function(e) {
+    var result = parse(e.data.data);
+    self.postMessage(result, [result.values.buffer]);
+  });
+  
+  function parse(string) {
+    var result = {};
+    var i, count, min, max;
+  
+    result.values = new Float32Array(string.trim().split(/\s+/).map(parseFloat));
+    min = result.values[0];
+    max = result.values[0];
+
+    for(i = 1, count = result.values.length; i < count; i++) {
+      min = Math.min(min, result.values[i]);
+      max = Math.max(max, result.values[i]);
+    }
+
+    result.min = min;
+    result.max = max;
+
+    return result;
+  }
+ 
+})();
+

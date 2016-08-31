@@ -21,12 +21,129 @@
 */
 
 /*
-* BrainBrowser v2.5.0
-*
-* Author: Tarek Sherif  <tsherif@gmail.com> (http://tareksherif.ca/)
-* Author: Nicolas Kassis
-* Author: Paul Mougel
-*
-* three.js (c) 2010-2014 three.js authors, used under the MIT license
+* @author: Tarek Sherif
 */
-!function(){"use strict";function a(a){var e={name:a.name,type:a.type,shapes:[]},f=[];return e.vertices=new Float32Array(b(a.vertices)),f.push(e.vertices.buffer),a.colors=a.colors||a.color,a.colors&&(e.colors=b(a.colors),e.vertices.length===e.colors.length||3===e.colors.length?e.colors=c(e.colors):e.colors=new Float32Array(e.colors),f.push(e.colors.buffer)),a.normals&&(e.normals=new Float32Array(b(a.normals)),f.push(e.normals.buffer)),void 0===a.shapes&&(a.shapes=[]),a.indices&&a.shapes.push({indices:a.indices}),a.shapes.forEach(function(a){var c=new Uint32Array(b(a.indices));a.one_indexed&&d(c),f.push(c.buffer),a.color=a.color||a.colors,Array.isArray(a.color)&&3===a.color.length&&a.color.push(1),a.color&&(a.color=new Float32Array(a.color),f.push(a.color.buffer)),e.shapes.push({name:a.name,indices:c,color:a.color})}),{result:e,transfer:f}}function b(a,c){if(!Array.isArray(a))return[a];if(c=c||0,c===a.length)return[];var d,e,f=[];for(d=0,e=a.length;e>d;d++)f.push.apply(f,b(a[d]));return f}function c(a){var b,c,d,e;for(b=new Float32Array(4*a.length/3),c=d=0,e=a.length;e>c;)b[d++]=a[c++],b[d++]=a[c++],b[d++]=a[c++],b[d++]=1;return b}function d(a){var b,c;for(b=0,c=a.length;c>b;b++)a[b]=a[b]-1}self.addEventListener("message",function(b){var c=a(JSON.parse(b.data.data)),d=c.result,e=c.transfer;self.postMessage(d,e)})}();
+
+(function() {
+  "use strict";
+
+  self.addEventListener("message", function(e) {
+    var parsed = parseData(JSON.parse(e.data.data));
+    var result = parsed.result;
+    var transfer = parsed.transfer;
+
+    self.postMessage(result, transfer);
+  });
+
+  function parseData(data) {
+    var result = { name: data.name, type: data.type, shapes: [] };
+    var transfer = [];
+
+    result.vertices = new Float32Array(flatten(data.vertices));
+    transfer.push(result.vertices.buffer);
+
+    data.colors = data.colors || data.color;
+
+    if (data.colors) {
+      result.colors = flatten(data.colors);
+
+      if (result.vertices.length === result.colors.length || result.colors.length === 3) {
+        result.colors = insertColorAlpha(result.colors);
+      } else {
+        result.colors = new Float32Array(result.colors);
+      }
+
+      transfer.push(result.colors.buffer);
+    }
+
+    if (data.normals) {
+      result.normals = new Float32Array(flatten(data.normals));
+      transfer.push(result.normals.buffer);
+    }
+
+    if (data.shapes === undefined) {
+      data.shapes = [];
+    }
+
+    if (data.indices) {
+      data.shapes.push({ indices: data.indices });
+    }
+
+    data.shapes.forEach(function(shape) {
+      var indices = new Uint32Array(flatten(shape.indices));
+      
+      if (shape.one_indexed) {
+        adjustIndices(indices);
+      }
+      
+      transfer.push(indices.buffer);
+
+      shape.color = shape.color || shape.colors;
+
+      if (Array.isArray(shape.color) && shape.color.length === 3) {
+        shape.color.push(1);
+      }
+
+      if (shape.color) {
+        shape.color = new Float32Array(shape.color);
+        transfer.push(shape.color.buffer);
+      }
+      
+      result.shapes.push({ name: shape.name, indices: indices, color: shape.color });
+    });
+
+    return {
+      result: result,
+      transfer: transfer
+    };
+  }
+
+  function flatten(array, index) {
+    if (!Array.isArray(array)) {
+      return [array];
+    }
+
+    index = index || 0;
+
+    if (index === array.length) {
+      return [];
+    }
+
+    var result = [];
+    var i, count;
+
+    for (i = 0, count = array.length; i < count; i++) {
+      result.push.apply(result, flatten(array[i]));
+    }
+
+    return result;
+  }
+
+  function insertColorAlpha(data_colors) {
+    var colors;
+    var i, ri, count;
+
+    colors = new Float32Array(data_colors.length * 4 / 3);
+    i = ri = 0;
+    count = data_colors.length;
+
+    while (i < count) {
+      colors[ri++] = data_colors[i++];
+      colors[ri++] = data_colors[i++];
+      colors[ri++] = data_colors[i++];
+      colors[ri++] = 1.0;
+    }
+
+    return colors;
+  }
+
+  function adjustIndices(indices) {
+    var i, count;
+
+    for (i = 0, count = indices.length; i < count; i++) {
+      indices[i] = indices[i] - 1;
+    }
+  }
+  
+})();
+

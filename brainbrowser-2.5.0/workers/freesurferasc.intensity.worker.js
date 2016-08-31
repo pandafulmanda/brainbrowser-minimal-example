@@ -21,12 +21,45 @@
 */
 
 /*
-* BrainBrowser v2.5.0
-*
-* Author: Tarek Sherif  <tsherif@gmail.com> (http://tareksherif.ca/)
-* Author: Nicolas Kassis
-* Author: Paul Mougel
-*
-* three.js (c) 2010-2014 three.js authors, used under the MIT license
+* @author: Tarek Sherif
 */
-!function(){"use strict";function a(a){var b,c,d,e,f,g,h;for(a=a.trim(),c=a.split("\n"),f=c.length,b=new Float32Array(f),d=parseFloat(c[0].trim().split(/\s+/)[4]),b[0]=d,g=d,h=d,e=1;f>e;e++)d=parseFloat(c[e].trim().split(/\s+/)[4]),b[e]=d,g=Math.min(g,d),h=Math.max(h,d);return{values:new Float32Array(b),min:g,max:h}}self.addEventListener("message",function(b){var c=a(b.data.data);self.postMessage(c,[c.values.buffer])})}();
+
+(function() {
+  "use strict";
+  
+  self.addEventListener("message", function(e) {
+    var result = parse(e.data.data);
+    self.postMessage(result, [result.values.buffer]);
+  });
+  
+  function parse(string) {
+    var values;
+    var lines, value;
+    var i, num_vals, min, max;
+  
+    string = string.trim();
+
+    lines = string.split("\n");
+    num_vals = lines.length;
+    values = new Float32Array(num_vals);
+    value = parseFloat(lines[0].trim().split(/\s+/)[4]);
+    values[0] = value;
+    min = value;
+    max = value;
+
+    for(i = 1; i < num_vals; i++) {
+      value = parseFloat(lines[i].trim().split(/\s+/)[4]);
+      values[i] = value;
+      min = Math.min(min, value);
+      max = Math.max(max, value);
+    }
+
+    return {
+      values: new Float32Array(values),
+      min: min,
+      max: max
+    };
+  }
+ 
+})();
+

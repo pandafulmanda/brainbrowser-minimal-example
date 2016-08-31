@@ -21,12 +21,188 @@
 */
 
 /*
-* BrainBrowser v2.5.0
-*
-* Author: Tarek Sherif  <tsherif@gmail.com> (http://tareksherif.ca/)
-* Author: Nicolas Kassis
-* Author: Paul Mougel
-*
-* three.js (c) 2010-2014 three.js authors, used under the MIT license
+* @author: Tarek Sherif
 */
-!function(){"use strict";function a(a,c,d,e){a=a||[],c=c||[],d=d||[],e=e;var f,g,h,i,j,k,l,m,n,o,p=a.length,q=3*p,r=4*p,s=d.length>0,t={},u={};4===e.length&&(j=!0,f=e[0],g=e[1],h=e[2],i=e[3]);var v=new Float32Array(q),w=s?new Float32Array(q):null,x=new Float32Array(r);for(k=0,l=a.length;l>k;k++)b(t,c[3*a[k]],c[3*a[k]+1],c[3*a[k]+2]);for(u.x=t.min_x+(t.max_x-t.min_x)/2,u.y=t.min_y+(t.max_y-t.min_y)/2,u.z=t.min_z+(t.max_z-t.min_z)/2,k=0;p>k;k+=3)m=3*k,n=4*k,v[m]=c[3*a[k]],v[m+1]=c[3*a[k]+1],v[m+2]=c[3*a[k]+2],v[m+3]=c[3*a[k+1]],v[m+4]=c[3*a[k+1]+1],v[m+5]=c[3*a[k+1]+2],v[m+6]=c[3*a[k+2]],v[m+7]=c[3*a[k+2]+1],v[m+8]=c[3*a[k+2]+2],s&&(w[m]=d[3*a[k]],w[m+1]=d[3*a[k]+1],w[m+2]=d[3*a[k]+2],w[m+3]=d[3*a[k+1]],w[m+4]=d[3*a[k+1]+1],w[m+5]=d[3*a[k+1]+2],w[m+6]=d[3*a[k+2]],w[m+7]=d[3*a[k+2]+1],w[m+8]=d[3*a[k+2]+2]),j?(x[n]=f,x[n+1]=g,x[n+2]=h,x[n+3]=i,x[n+4]=f,x[n+5]=g,x[n+6]=h,x[n+7]=i,x[n+8]=f,x[n+9]=g,x[n+10]=h,x[n+11]=i):(x[n]=e[4*a[k]],x[n+1]=e[4*a[k]+1],x[n+2]=e[4*a[k]+2],x[n+3]=e[4*a[k]+3],x[n+4]=e[4*a[k+1]],x[n+5]=e[4*a[k+1]+1],x[n+6]=e[4*a[k+1]+2],x[n+7]=e[4*a[k+1]+3],x[n+8]=e[4*a[k+2]],x[n+9]=e[4*a[k+2]+1],x[n+10]=e[4*a[k+2]+2],x[n+11]=e[4*a[k+2]+3]);return o={centroid:u,bounding_box:t,unindexed:{position:v,normal:w,color:x}}}function b(a,b,c,d){(!a.min_x||a.min_x>b)&&(a.min_x=b),(!a.max_x||a.max_x<b)&&(a.max_x=b),(!a.min_y||a.min_y>c)&&(a.min_y=c),(!a.max_y||a.max_y<c)&&(a.max_y=c),(!a.min_z||a.min_z>d)&&(a.min_z=d),(!a.max_z||a.max_z<d)&&(a.max_z=d)}self.addEventListener("message",function(b){var c,d,e,f,g=b.data,h=g.shapes,i=g.vertices,j=g.normals,k=g.colors,l=[i.buffer];for(c=0,d=h.length;d>c;c++)e=h[c],f=a(e.indices,i,j,e.color||k),e.centroid=f.centroid,e.unindexed=f.unindexed,l.push(e.indices.buffer),l.push(e.unindexed.position.buffer),e.unindexed.normal&&l.push(e.unindexed.normal.buffer),e.unindexed.color&&l.push(e.unindexed.color.buffer);j&&l.push(j.buffer),k&&l.push(k.buffer),g.deindexed=!0,self.postMessage(g,l)})}();
+
+(function() {
+  "use strict";
+  
+  self.addEventListener("message", function(e) {
+    var data = e.data;
+    var shapes = data.shapes;
+    var verts = data.vertices;
+    var norms = data.normals;
+    var colors = data.colors;
+    var transfer = [verts.buffer];
+    var i, count;
+    var shape, unindexed;
+
+    for (i = 0, count = shapes.length; i < count; i++) {
+      shape = shapes[i];
+      unindexed = deindex(shape.indices, verts, norms, shape.color || colors);
+      shape.centroid = unindexed.centroid;
+      shape.unindexed = unindexed.unindexed;
+
+      transfer.push(shape.indices.buffer);
+
+      transfer.push(shape.unindexed.position.buffer);
+
+      if (shape.unindexed.normal) {
+        transfer.push(shape.unindexed.normal.buffer);
+      }
+
+      if (shape.unindexed.color) {
+        transfer.push(shape.unindexed.color.buffer);
+      }
+    }
+
+    if (norms) {
+      transfer.push(norms.buffer);
+    }
+
+    if (colors) {
+      transfer.push(colors.buffer);
+    }
+
+    data.deindexed = true;
+
+    self.postMessage(data, transfer);
+  });
+  
+  function deindex(indices, verts, norms, colors) {
+    indices = indices || [];
+    verts = verts || [];
+    norms = norms || [];
+    colors = colors;
+
+    var num_vertices = indices.length; // number of unindexed vertices.
+    var num_coords = num_vertices * 3;
+    var num_color_coords = num_vertices * 4;
+
+    var normals_given = norms.length > 0;
+    var data_color_0, data_color_1, data_color_2, data_color_3, all_gray;
+    var bounding_box = {};
+    var centroid = {};
+    var i, count;
+    var iv, ic;
+
+    var result;
+
+    if(colors.length === 4) {
+      all_gray = true;
+      data_color_0 = colors[0];
+      data_color_1 = colors[1];
+      data_color_2 = colors[2];
+      data_color_3 = colors[3];
+    }
+
+    var unindexed_positions = new Float32Array(num_coords);
+    var unindexed_normals = normals_given ?  new Float32Array(num_coords) : null;
+    var unindexed_colors = new Float32Array(num_color_coords);
+
+    // Calculate center so positions of objects relative to each other can
+    // defined (mainly for transparency).
+    for(i = 0, count = indices.length; i < count; i++) {
+      boundingBoxUpdate(bounding_box, verts[indices[i] * 3], verts[indices[i] * 3 + 1], verts[indices[i] * 3 + 2]);
+    }
+    centroid.x = bounding_box.min_x + (bounding_box.max_x - bounding_box.min_x) / 2;
+    centroid.y = bounding_box.min_y + (bounding_box.max_y - bounding_box.min_y) / 2;
+    centroid.z = bounding_box.min_z + (bounding_box.max_z - bounding_box.min_z) / 2;
+
+    // "Unravel" the vertex and normal arrays so we don't have to use indices
+    // (Avoids WebGL's 16 bit limit on indices)
+    for (i = 0; i < num_vertices; i += 3) {
+      iv = i * 3;
+      ic = i * 4;
+
+      unindexed_positions[iv]     = verts[indices[i] * 3];
+      unindexed_positions[iv + 1] = verts[indices[i] * 3 + 1];
+      unindexed_positions[iv + 2] = verts[indices[i] * 3 + 2];
+      unindexed_positions[iv + 3] = verts[indices[i+1] * 3];
+      unindexed_positions[iv + 4] = verts[indices[i+1] * 3 + 1];
+      unindexed_positions[iv + 5] = verts[indices[i+1] * 3 + 2];
+      unindexed_positions[iv + 6] = verts[indices[i+2] * 3];
+      unindexed_positions[iv + 7] = verts[indices[i+2] * 3 + 1];
+      unindexed_positions[iv + 8] = verts[indices[i+2] * 3 + 2];
+
+      if (normals_given) {
+        unindexed_normals[iv]     = norms[indices[i] * 3];
+        unindexed_normals[iv + 1] = norms[indices[i] * 3 + 1];
+        unindexed_normals[iv + 2] = norms[indices[i] * 3 + 2];
+        unindexed_normals[iv + 3] = norms[indices[i+1] * 3];
+        unindexed_normals[iv + 4] = norms[indices[i+1] * 3 + 1];
+        unindexed_normals[iv + 5] = norms[indices[i+1] * 3 + 2];
+        unindexed_normals[iv + 6] = norms[indices[i+2] * 3];
+        unindexed_normals[iv + 7] = norms[indices[i+2] * 3 + 1];
+        unindexed_normals[iv + 8] = norms[indices[i+2] * 3 + 2];
+      }
+
+      if (all_gray) {
+        unindexed_colors[ic]      = data_color_0;
+        unindexed_colors[ic + 1]  = data_color_1;
+        unindexed_colors[ic + 2]  = data_color_2;
+        unindexed_colors[ic + 3]  = data_color_3;
+        unindexed_colors[ic + 4]  = data_color_0;
+        unindexed_colors[ic + 5]  = data_color_1;
+        unindexed_colors[ic + 6]  = data_color_2;
+        unindexed_colors[ic + 7]  = data_color_3;
+        unindexed_colors[ic + 8]  = data_color_0;
+        unindexed_colors[ic + 9]  = data_color_1;
+        unindexed_colors[ic + 10] = data_color_2;
+        unindexed_colors[ic + 11] = data_color_3;
+      } else {
+        unindexed_colors[ic]      = colors[indices[i] * 4];
+        unindexed_colors[ic + 1]  = colors[indices[i] * 4 + 1];
+        unindexed_colors[ic + 2]  = colors[indices[i] * 4 + 2];
+        unindexed_colors[ic + 3]  = colors[indices[i] * 4 + 3];
+        unindexed_colors[ic + 4]  = colors[indices[i+1] * 4];
+        unindexed_colors[ic + 5]  = colors[indices[i+1] * 4 + 1];
+        unindexed_colors[ic + 6]  = colors[indices[i+1] * 4 + 2];
+        unindexed_colors[ic + 7]  = colors[indices[i+1] * 4 + 3];
+        unindexed_colors[ic + 8]  = colors[indices[i+2] * 4];
+        unindexed_colors[ic + 9]  = colors[indices[i+2] * 4 + 1];
+        unindexed_colors[ic + 10] = colors[indices[i+2] * 4 + 2];
+        unindexed_colors[ic + 11] = colors[indices[i+2] * 4 + 3];
+      }
+    }
+
+    result =  {
+      centroid: centroid,
+      bounding_box: bounding_box,
+      unindexed : {
+        position: unindexed_positions,
+        normal: unindexed_normals,
+        color: unindexed_colors,
+      }
+    };
+
+    return result;
+  }
+
+  // Update current values of the bounding box of
+  // an object.
+  function boundingBoxUpdate(box, x, y, z) {
+    if (!box.min_x || box.min_x > x) {
+      box.min_x = x;
+    }
+    if (!box.max_x || box.max_x < x) {
+      box.max_x = x;
+    }
+    if (!box.min_y || box.min_y > y) {
+      box.min_y = y;
+    }
+    if (!box.max_y || box.max_y < y) {
+      box.max_y = y;
+    }
+    if (!box.min_z || box.min_z > z) {
+      box.min_z = z;
+    }
+    if (!box.max_z || box.max_z < z) {
+      box.max_z = z;
+    }
+  }
+
+
+})();
+
+

@@ -21,12 +21,124 @@
 */
 
 /*
-* BrainBrowser v2.5.0
-*
-* Author: Tarek Sherif  <tsherif@gmail.com> (http://tareksherif.ca/)
-* Author: Nicolas Kassis
-* Author: Paul Mougel
-*
-* three.js (c) 2010-2014 three.js authors, used under the MIT license
+* @author: Tarek Sherif
 */
-!function(){"use strict";function a(a){var b,c,d,e=new Uint32Array(2*a.length);for(b=0,d=a.length;d>b;b+=3)c=2*b,e[c]=a[b],e[c+1]=a[b+1],e[c+2]=a[b+1],e[c+3]=a[b+2],e[c+4]=a[b+2],e[c+5]=a[b];return{indices:e}}function b(a,b){var c,d,e,f,g,h=new Float32Array(2*a.length),i=new Float32Array(2*b.length),j=a.length/3;for(c=0;j>c;c+=3)e=3*c,f=4*c,d=2*e,g=2*f,h[d]=a[e],h[d+1]=a[e+1],h[d+2]=a[e+2],h[d+3]=a[e+3],h[d+4]=a[e+4],h[d+5]=a[e+5],h[d+6]=a[e+3],h[d+7]=a[e+4],h[d+8]=a[e+5],h[d+9]=a[e+6],h[d+10]=a[e+7],h[d+11]=a[e+8],h[d+12]=a[e+6],h[d+13]=a[e+7],h[d+14]=a[e+8],h[d+15]=a[e],h[d+16]=a[e+1],h[d+17]=a[e+2],i[g]=b[f],i[g+1]=b[f+1],i[g+2]=b[f+2],i[g+3]=b[f+3],i[g+4]=b[f+4],i[g+5]=b[f+5],i[g+6]=b[f+6],i[g+7]=b[f+7],i[g+8]=b[f+4],i[g+9]=b[f+5],i[g+10]=b[f+6],i[g+11]=b[f+7],i[g+12]=b[f+8],i[g+13]=b[f+9],i[g+14]=b[f+10],i[g+15]=b[f+11],i[g+16]=b[f+8],i[g+17]=b[f+9],i[g+18]=b[f+10],i[g+19]=b[f+11],i[g+20]=b[f],i[g+21]=b[f+1],i[g+22]=b[f+2],i[g+23]=b[f+3];return{positions:h,colors:i}}self.addEventListener("message",function(c){var d,e,f=c.data;f.indices?(d=a(f.indices),e=[d.indices.buffer]):(d=b(f.positions,f.colors),e=[d.positions.buffer,d.colors.buffer]),self.postMessage(d,e)})}();
+
+(function() {
+  "use strict";
+
+  self.addEventListener("message", function(event) {
+    var data = event.data;
+
+    var result, transfer;
+
+    if (data.indices) {
+      result = createIndexedWireframe(data.indices);
+      transfer = [result.indices.buffer];
+    } else {
+      result = createUnindexedWireframe(data.positions, data.colors);
+      transfer = [result.positions.buffer, result.colors.buffer];
+    }
+
+    self.postMessage(result, transfer);
+  });
+
+  function createIndexedWireframe(indices) {
+    var wire_indices = new Uint32Array(indices.length * 2);
+    var i, iw, count;
+
+    for (i = 0, count = indices.length; i < count; i += 3) {
+      iw = i * 2;
+
+      // v1 - v2
+      wire_indices[iw]      = indices[i];
+      wire_indices[iw + 1]  = indices[i + 1];
+
+      // v2 - v3
+      wire_indices[iw + 2]  = indices[i + 1];
+      wire_indices[iw + 3]  = indices[i + 2];
+
+      // v3 - v1
+      wire_indices[iw + 4] = indices[i + 2];
+      wire_indices[iw + 5] = indices[i];
+
+    }
+
+    return {
+      indices: wire_indices
+    };
+  }
+
+  function createUnindexedWireframe(positions, colors) {
+    var wire_verts = new Float32Array(positions.length * 2);
+    var wire_colors = new Float32Array(colors.length * 2);
+    var i, iw, iv, ic, iwc;
+    var num_vertices = positions.length / 3;
+
+    for (i = 0; i < num_vertices; i += 3) {
+      iv = i * 3;
+      ic = i * 4;
+      iw = iv * 2;
+      iwc = ic * 2;
+
+      // v1 -v2
+      wire_verts[iw]      = positions[iv];
+      wire_verts[iw + 1]  = positions[iv + 1];
+      wire_verts[iw + 2]  = positions[iv + 2];
+      wire_verts[iw + 3]  = positions[iv + 3];
+      wire_verts[iw + 4]  = positions[iv + 4];
+      wire_verts[iw + 5]  = positions[iv + 5];
+
+      // v2 - v3
+      wire_verts[iw + 6]  = positions[iv + 3];
+      wire_verts[iw + 7]  = positions[iv + 4];
+      wire_verts[iw + 8]  = positions[iv + 5];
+      wire_verts[iw + 9]  = positions[iv + 6];
+      wire_verts[iw + 10] = positions[iv + 7];
+      wire_verts[iw + 11] = positions[iv + 8];
+
+      // v3 - v1
+      wire_verts[iw + 12] = positions[iv + 6];
+      wire_verts[iw + 13] = positions[iv + 7];
+      wire_verts[iw + 14] = positions[iv + 8];
+      wire_verts[iw + 15] = positions[iv];
+      wire_verts[iw + 16] = positions[iv + 1];
+      wire_verts[iw + 17] = positions[iv + 2];
+
+       // v1 -v2
+      wire_colors[iwc]      = colors[ic];
+      wire_colors[iwc + 1]  = colors[ic + 1];
+      wire_colors[iwc + 2]  = colors[ic + 2];
+      wire_colors[iwc + 3]  = colors[ic + 3];
+      wire_colors[iwc + 4]  = colors[ic + 4];
+      wire_colors[iwc + 5]  = colors[ic + 5];
+      wire_colors[iwc + 6]  = colors[ic + 6];
+      wire_colors[iwc + 7]  = colors[ic + 7];
+
+      // v2 - v3
+      wire_colors[iwc + 8]  = colors[ic + 4];
+      wire_colors[iwc + 9]  = colors[ic + 5];
+      wire_colors[iwc + 10] = colors[ic + 6];
+      wire_colors[iwc + 11] = colors[ic + 7];
+      wire_colors[iwc + 12] = colors[ic + 8];
+      wire_colors[iwc + 13] = colors[ic + 9];
+      wire_colors[iwc + 14] = colors[ic + 10];
+      wire_colors[iwc + 15] = colors[ic + 11];
+      
+      // v3 - v1
+      wire_colors[iwc + 16] = colors[ic + 8];
+      wire_colors[iwc + 17] = colors[ic + 9];
+      wire_colors[iwc + 18] = colors[ic + 10];
+      wire_colors[iwc + 19] = colors[ic + 11];
+      wire_colors[iwc + 20] = colors[ic];
+      wire_colors[iwc + 21] = colors[ic + 1];
+      wire_colors[iwc + 22] = colors[ic + 2];
+      wire_colors[iwc + 23] = colors[ic + 3];
+    }
+
+    return {
+      positions: wire_verts,
+      colors: wire_colors
+    };
+  }
+})();

@@ -21,12 +21,78 @@
 */
 
 /*
-* BrainBrowser v2.5.0
-*
-* Author: Tarek Sherif  <tsherif@gmail.com> (http://tareksherif.ca/)
-* Author: Nicolas Kassis
-* Author: Paul Mougel
-*
-* three.js (c) 2010-2014 three.js authors, used under the MIT license
+* @author: Tarek Sherif
 */
-!function(){"use strict";function a(a){var c,d,e,f,g,h,i=new DataView(a),j=0,k=b(i);if(j+=3,16777215!==k)return{error:!0,error_message:"Unrecognized file format."};if(d=i.getUint32(j),j+=8,e=i.getUint32(j),j+=4,1!==e)return{error:!0,error_message:"Only one value per vertex supported. Number of values: "+e};for(c=new Float32Array(d),c[0]=f=g=i.getFloat32(j),j+=4,h=1;d>h;h++)c[h]=i.getFloat32(j),f=Math.min(f,c[h]),g=Math.max(g,c[h]),j+=4;return{values:c,min:f,max:g}}function b(a){var b,c=0;for(b=0;3>b;b++)c+=a.getUint8(b)<<8*(3-b-1);return c}self.addEventListener("message",function(b){var c=a(b.data.data);self.postMessage(c,[c.values.buffer])})}();
+
+(function() {
+  "use strict";
+      
+  self.addEventListener("message", function(e) {
+    var result = parse(e.data.data);
+    self.postMessage(result, [result.values.buffer]);
+  });
+  
+  // Parsing based on http://www.grahamwideman.com/gw/brain/fs/surfacefileformats.htm
+  function parse(data) {
+    var bytes = new DataView(data);
+    var index = 0;
+    var values;
+    var num_vertices, vals_per_vertex;
+    var min, max;
+    var i;
+
+    var magic_number = getMagicNumber(bytes);
+    index += 3;
+
+    if (magic_number !== 0x00ffffff) {
+      return {
+        error: true,
+        error_message: "Unrecognized file format."
+      };
+    }
+
+    num_vertices = bytes.getUint32(index);
+    index += 8;  // Skip face count
+
+    vals_per_vertex = bytes.getUint32(index);
+    index += 4;
+
+    if (vals_per_vertex !== 1) {
+      return {
+        error: true,
+        error_message: "Only one value per vertex supported. Number of values: " + vals_per_vertex
+      };
+    }
+
+    values = new Float32Array(num_vertices);
+    
+    values[0] = min = max = bytes.getFloat32(index);
+    index += 4;
+
+    for (i = 1; i < num_vertices; i++) {
+      values[i] = bytes.getFloat32(index);
+      min = Math.min(min, values[i]);
+      max = Math.max(max, values[i]);
+      index += 4;
+    }
+
+    return {
+      values: values,
+      min: min,
+      max: max
+    };
+  }
+
+  // First 3 bytes.
+  function getMagicNumber(bytes) {
+    var result = 0;
+    var i;
+
+    for (i = 0; i < 3; i++) {
+      result += bytes.getUint8(i) << (3 - i - 1) * 8;
+    }
+
+    return result;
+  }
+})();
+
