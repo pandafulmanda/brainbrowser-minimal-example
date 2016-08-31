@@ -1,4 +1,8 @@
 ## Quick start
 
-`npm install`
-`npm start`
+```bash
+npm install
+```
+```bash
+npm start
+```
