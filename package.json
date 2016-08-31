@@ -1,0 +1,23 @@
+{
+  "name": "brain",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "http-server -p 6000"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pandafulmanda/brainbrowser-minimal-example.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/pandafulmanda/brainbrowser-minimal-example/issues"
+  },
+  "homepage": "https://github.com/pandafulmanda/brainbrowser-minimal-example#readme",
+  "devDependencies": {
+    "http-server": "^0.9.0"
+  }
+}
