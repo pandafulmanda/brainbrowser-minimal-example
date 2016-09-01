@@ -5,30 +5,34 @@ BrainBrowser.config.set('worker_dir', './brainbrowser-2.5.0/workers/');
 BrainBrowser.config.set("color_maps", [
   {
     name: "Spectral",
-    url: "color-maps/spectral.txt.gz",
+    url: "color-maps/spectral.txt",
   },
   {
     name: "Thermal",
-    url: "color-maps/thermal.txt.gz",
+    url: "color-maps/thermal.txt",
   },
   {
     name: "Gray",
-    url: "color-maps/gray-scale.txt.gz",
+    url: "color-maps/gray-scale.txt",
   },
   {
     name: "Blue",
-    url: "color-maps/blue.txt.gz",
+    url: "color-maps/blue.txt",
   },
   {
     name: "Green",
-    url: "color-maps/green.txt.gz",
+    url: "color-maps/green.txt",
   }
 ]);
 
 BrainBrowser.SurfaceViewer.start('brainbrowser', handleBrainz);
 
 var gui = new dat.GUI();
-// var meshgui = gui.addFolder('mesh.name');
+var inputs = queryStringToHash();
+
+var modelUrl = inputs.model || './models/vtk/freesurfer_curvature.vtk'
+var curvatureUrl = inputs.curv || './models/vertices.csv'
+
 
 // Pulled out this function from the start call so that it's not so nested.
 function handleBrainz(viewer) {
@@ -39,7 +43,7 @@ function handleBrainz(viewer) {
   //Add an event listener.
   viewer.addEventListener('displaymodel', function(brainBrowserModel) {
     window.brainBrowserModel = brainBrowserModel;
-    console.log('We have a model!');
+
     meshgui = gui.addFolder(brainBrowserModel.model_data.name);
     meshgui.open();
     viewer.setClearColor(0XFFFFFF);
@@ -73,14 +77,19 @@ function handleBrainz(viewer) {
 
 
   // Load a model into the scene.
-  viewer.loadModelFromURL('./models/vtk/freesurfer_curvature.vtk.gz', {
+  viewer.loadModelFromURL(modelUrl, {
     format: 'vtk',
     complete: function(){
-      viewer.loadIntensityDataFromURL('./models/vertices.csv.gz', {
+      viewer.loadIntensityDataFromURL(curvatureUrl, {
         format: "csv",
         name: "Cortical Thickness"
       });
     }
   });
 
+}
+
+// taken from https://css-tricks.com/snippets/jquery/get-query-params-object/
+function queryStringToHash(str){
+  return (str || document.location.search).replace(/(^\?)/,'').split("&").map(function(n){return n = n.split("="),this[n[0]] = n[1],this}.bind({}))[0];
 }
