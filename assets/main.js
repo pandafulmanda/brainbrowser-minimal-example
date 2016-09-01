@@ -31,7 +31,7 @@ var gui = new dat.GUI();
 var inputs = queryStringToHash();
 
 var modelUrl = inputs.model || './models/vtk/freesurfer_curvature.vtk'
-var curvatureUrl = inputs.curv || './models/vertices.csv'
+var overlayUrl = inputs.overlay || './models/vertices.csv'
 
 
 // Pulled out this function from the start call so that it's not so nested.
@@ -80,7 +80,7 @@ function handleBrainz(viewer) {
   viewer.loadModelFromURL(modelUrl, {
     format: 'vtk',
     complete: function(){
-      viewer.loadIntensityDataFromURL(curvatureUrl, {
+      viewer.loadIntensityDataFromURL(overlayUrl, {
         format: "csv",
         name: "Cortical Thickness"
       });
