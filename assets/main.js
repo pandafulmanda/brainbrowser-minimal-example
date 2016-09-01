@@ -46,7 +46,6 @@ function handleBrainz(viewer) {
 
     meshgui = gui.addFolder(brainBrowserModel.model_data.name);
     meshgui.open();
-    viewer.setClearColor(0XFFFFFF);
 
   });
 
@@ -73,6 +72,7 @@ function handleBrainz(viewer) {
 
   // Start rendering the scene.
   viewer.render();
+  viewer.setClearColor(0XFFFFFF);
   viewer.loadColorMapFromURL(BrainBrowser.config.get("color_maps")[0].url);
 
 
