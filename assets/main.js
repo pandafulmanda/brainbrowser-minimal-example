@@ -67,7 +67,7 @@ function handleBrainz(viewer) {
       viewer.setIntensityRange(intensity_data.min, newMax)
     })
     transparency.onChange(function(newT){
-        viewer.setTransparency(newT)
+        viewer.setTransparency(newT, {shape_name: model_data.name})
     })
     
   });
