@@ -38,12 +38,27 @@ BrainBrowser.config.get("color_maps").forEach(function(val, idx, arr){colormaps[
 // Pulled out this function from the start call so that it's not so nested.
 function handleBrainz(viewer) {
   var meshgui;
+  // alias BB's THREE
+  var THREE = BrainBrowser.SurfaceViewer.THREE;
+  var COLORS = {
+    WHITE: 0xFFFFFF,
+    BLACK: 0x101010
+  };
+
   window.viewer = viewer;
   window.gui = gui;
 
-  //Add an event listener.
   viewer.addEventListener('displaymodel', function(brainBrowserModel) {
     window.brainBrowserModel = brainBrowserModel;
+
+    brainBrowserModel.model.children.forEach(function(shape){
+      shape.material = new THREE.MeshLambertMaterial( {
+        color: COLORS.WHITE,
+        ambient: COLORS.WHITE,
+        specular: COLORS.BLACK,
+        vertexColors: THREE.VertexColors
+      });
+    });
 
     meshgui = gui.addFolder(brainBrowserModel.model_data.name);
     meshgui.open();
@@ -56,12 +71,15 @@ function handleBrainz(viewer) {
     intensity_data.transparency = 1
     intensity_data.colormap_name = "Spectral"
     window.intensityData = intensity_data;
+
     overlayGui = meshgui.addFolder(intensity_data.name);
     overlayGui.open();
+
     var vmin = overlayGui.add(intensity_data, 'min');
     var vmax = overlayGui.add(intensity_data, 'max');
     var transparency = overlayGui.add(intensity_data, 'transparency',0,1);
     var cmap = overlayGui.add(intensity_data, "colormap_name", Object.keys(colormaps))
+
     vmin.onChange(function(newMin){
       viewer.setIntensityRange(newMin, intensity_data.max)
     })
