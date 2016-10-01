@@ -1,7 +1,7 @@
 BrainBrowser.config.set("model_types.vtk.worker", "vtk.worker.js");
-BrainBrowser.config.set("model_types.vtk.worker", "vtk.worker.js");
 BrainBrowser.config.set("intensity_data_types.csv.worker", "csv.intensity.worker.js");
-BrainBrowser.config.set('worker_dir', './brainbrowser-2.5.0/workers/');
+BrainBrowser.config.set("intensity_data_types.csvcolumn.worker", "csvcolumn.intensity.worker.js");
+BrainBrowser.config.set('worker_dir', '../brainbrowser/src/brainbrowser/workers/');
 BrainBrowser.config.set("color_maps", [
   {
     name: "Spectral",
@@ -58,10 +58,16 @@ function handleBrainz(viewer) {
         specular: COLORS.BLACK,
         vertexColors: THREE.VertexColors
       });
-    });
+      
+      meshgui = gui.addFolder(shape.name);
 
-    meshgui = gui.addFolder(brainBrowserModel.model_data.name);
-    meshgui.open();
+      var transparency = meshgui.add(shape.material, 'opacity',0,1);
+      transparency.onChange(function(newT){
+        viewer.setTransparency(newT, {shape_name: shape.name})
+      });
+
+      meshgui.open();
+    });
 
   });
 
@@ -77,21 +83,18 @@ function handleBrainz(viewer) {
 
     var vmin = overlayGui.add(intensity_data, 'min');
     var vmax = overlayGui.add(intensity_data, 'max');
-    var transparency = overlayGui.add(intensity_data, 'transparency',0,1);
     var cmap = overlayGui.add(intensity_data, "colormap_name", Object.keys(colormaps))
 
     vmin.onChange(function(newMin){
-      viewer.setIntensityRange(newMin, intensity_data.max)
-    })
+      viewer.setIntensityRange(intensity_data, newMin, intensity_data.max)
+    });
     vmax.onChange(function(newMax){
-      viewer.setIntensityRange(intensity_data.min, newMax)
-    })
-    transparency.onChange(function(newT){
-        viewer.setTransparency(newT, {shape_name: model_data.name})
-    })
+      viewer.setIntensityRange(intensity_data, intensity_data.min, newMax)
+    });
+
     cmap.onChange(function(newC){
         viewer.loadColorMapFromURL(colormaps[newC])
-    })
+    });
     
   });
 
@@ -109,9 +112,11 @@ function handleBrainz(viewer) {
   viewer.loadModelFromURL(modelUrl, {
     format: 'vtk',
     complete: function(){
-      viewer.loadIntensityDataFromURL(overlayUrl, {
+      viewer.loadIntensityDataSetFromURL(overlayUrl, {
         format: "csv",
-        name: "Cortical Thickness"
+        parse: {
+          columns: ['freesurfer convexity (sulc)', 'freesurfer thickness', 'freesurfer curvature']
+        }
       });
     }
   });
