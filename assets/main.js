@@ -23,31 +23,30 @@ function handleBrainz(viewer) {
     BrainBrowser.loader.loadFromURL(inputs.config, function(response){
       viewer.triggerEvent('loadconfig', JSON.parse(response));
     });
-  } else {
-    viewer.triggerEvent('loadconfig', makeDefaultConfigFromInputs(inputs));
   }
 }
 
 function loadData(viewer, config){
 
   var colorMapIndex = 0;
+  var bbConfig = new Config(config);
 
   viewer.addEventListener('displaymodel', function(brainBrowserModel) {
 
-    config.encoding.intensity.forEach(function(intensityData){
-      if(brainBrowserModel.model_data.name === intensityData.field){
-        viewer.loadIntensityDataSetFromURL(intensityData.location, {
-          format: intensityData.format ||  getFileExtension(intensityData.location),
-          model_name: brainBrowserModel.model_data.name,
-          parse: intensityData.options
-        });
-      }
+    const intensityData = bbConfig.getForLink('intensity', {
+      name: brainBrowserModel.model_data.name,
+      type: 'surface'
+    })
 
+    viewer.loadIntensityDataSetFromURL(intensityData.location, {
+      format: intensityData.format ||  getFileExtension(intensityData.location),
+      model_name: brainBrowserModel.model_data.name,
+      parse: intensityData.options
     });
+
   });
 
-  config.data.forEach(function(model){
-
+  bbConfig.get({type: 'surface'}).forEach(function(model){
     viewer.loadModelFromURL(model.location, {
       format: model.format || getFileExtension(model.location)
     });
@@ -85,7 +84,7 @@ function setupGui(viewer, config){
           specular: COLORS.BLACK,
           vertexColors: THREE.VertexColors
         });
-        
+
       }
 
       var shapeGui = gui.addFolder(brainBrowserModel.model_data.name);
@@ -108,8 +107,11 @@ function setupGui(viewer, config){
     var overlayGui = gui.__folders[model_data.name].addFolder(intensity_data.name);
     overlayGui.open();
 
+    var intensityGui = {show: true};
+
     var vmin = overlayGui.add(intensity_data, 'min');
     var vmax = overlayGui.add(intensity_data, 'max');
+    var show = overlayGui.add(intensityGui, 'show');
 
     vmin.onChange(function(newMin){
       viewer.setIntensityRange(intensity_data, newMin, intensity_data.max)
@@ -119,26 +121,6 @@ function setupGui(viewer, config){
     });
 
   });
-}
-
-function makeDefaultConfigFromInputs(inputs){
-  var modelUrl = inputs.model || './models/vtk/rh_freesurfer_curvature.vtk'
-  var overlayUrl = inputs.overlay || './models/rh_vertices.csv'
-
-  var viewerConfig = {
-    data: [{
-      location: modelUrl
-    }],
-    encoding: {
-      intensity: [{
-        location: overlayUrl,
-        field: modelUrl.split('/').pop(),
-        options: {
-          columns: ['freesurfer convexity (sulc)', 'freesurfer thickness', 'freesurfer curvature']
-        }
-      }]
-    }
-  };
 }
 
 function getFileExtension(fileLocation){
