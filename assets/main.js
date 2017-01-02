@@ -26,31 +26,82 @@ function handleBrainz(viewer) {
   }
 }
 
+function buildOptions(data, modelData){
+  return {
+    format: data.format ||  getFileExtension(data.location),
+    model_name: modelData.name,
+    parse: data.options
+  };
+}
+
+function loadDataFromSettings(dataSettings, modelData){
+  return function(callback){
+    BrainBrowser.loader.loadFromURL(
+      dataSettings.location,
+      function(data, filename, options){
+        callback(null, data, filename, options);
+      },
+      buildOptions(dataSettings, modelData)
+    );
+  }
+}
+
+function loadIntensityData(viewer, config, model_data){
+  const intensityData = config.getForLink('intensity', {
+    name: model_data.name,
+    type: 'surface'
+  });
+
+  if(intensityData){
+    viewer.loadIntensityDataSetFromURL(intensityData.location, buildOptions(intensityData, model_data));
+  }
+}
+
+function loadAtlasIntensityData(viewer, bbConfig, model_data){
+
+  const modelOption = {
+    name: model_data.name,
+    type: 'surface'
+  };
+
+  const atlasData = bbConfig.getForLink('atlas.values', modelOption);
+  const atlasIntensities = bbConfig.getForLink('intensity.grouped', modelOption);
+
+  if(atlasData && atlasIntensities){
+    async.parallel({
+      atlas: loadDataFromSettings(atlasData, model_data),
+      values: loadDataFromSettings(atlasIntensities, model_data)
+    }, function(error, results){
+      var data = {};
+      var options = {};
+      _.each(results, function(result, dataType){
+        data[dataType] = result[0];
+        options[dataType] = result[2].parse;
+      });
+
+      BrainBrowser.SurfaceViewer.parseAtlasData(
+        data,
+        options,
+        viewer.processIntensityDataSet(viewer.getRange(model_data.name), {model_name: model_data.name})
+      );
+    });
+  }
+}
+
 function loadData(viewer, config){
 
   var colorMapIndex = 0;
   var bbConfig = new Config(config);
 
   viewer.addEventListener('displaymodel', function(brainBrowserModel) {
-
-    const intensityData = bbConfig.getForLink('intensity', {
-      name: brainBrowserModel.model_data.name,
-      type: 'surface'
-    })
-
-    viewer.loadIntensityDataSetFromURL(intensityData.location, {
-      format: intensityData.format ||  getFileExtension(intensityData.location),
-      model_name: brainBrowserModel.model_data.name,
-      parse: intensityData.options
-    });
-
+    loadIntensityData(viewer, bbConfig, brainBrowserModel.model_data);
+    loadAtlasIntensityData(viewer, bbConfig, brainBrowserModel.model_data);
   });
 
   bbConfig.get({type: 'surface'}).forEach(function(model){
     viewer.loadModelFromURL(model.location, {
       format: model.format || getFileExtension(model.location)
     });
-
   });
 
   viewer.addEventListener("loadcolormap", function(event) {

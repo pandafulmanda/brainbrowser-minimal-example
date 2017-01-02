@@ -5,6 +5,15 @@
   }, {
     type: 'intensity',
     fileTypes: ['txt', 'csv']
+  }, {
+    type: 'atlas.values',
+    fileTypes: ['txt', 'csv']
+  }, {
+    type: 'atlas.labels',
+    fileTypes: ['txt', 'csv']
+  }, {
+    type: 'intensity.grouped',
+    fileTypes: ['txt', 'csv']
   }];
 
   _.templateSettings.interpolate = /{{([\s\S]+?)}}/g;
@@ -90,8 +99,13 @@
       const link = _.chain(this.getConfig().links)
         .find(function(link){
           return _.find(link, makeLinkItem(linkToMatch));
-        }).reject(makeLinkItem(linkToMatch)).first().value();
-      return _.first(this.get(link));
+        })
+        .find({type: type})
+        .value();
+
+      if(link) {
+        return _.first(this.get(link));
+      }
     }
 
   }

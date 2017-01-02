@@ -1,0 +1,60 @@
+{
+  "data": [{
+    "location": "./models/vtk/rh_freesurfer_curvature.vtk"
+  }, {
+    "location": "./models/vtk/freesurfer_curvature.vtk"
+  }, {
+    "location": "./models/rh_vertices.csv",
+    "type": "atlas.values",
+    "options": {
+      "columns": ["label ID"]
+    }
+  }, {
+    "location": "./models/vertices.csv",
+    "type": "atlas.values",
+    "options": {
+      "columns": ["label ID"]
+    }
+  }, {
+    "location": "./models/data.csv",
+    "type": "atlas.labels",
+    "name": "atlas-labels",
+    "options": {
+      "columns": ["name", "ID"]
+    }
+  }, {
+    "location": "./models/data.csv",
+    "type": "intensity.grouped",
+    "name": "thickness",
+    "options": {
+      "columns": ["ID", "thickness (thickinthehead)"]
+    }
+  }],
+  "links": [
+    [{
+      "type": "surface",
+      "name": "rh_freesurfer_curvature"
+    }, {
+      "type": "intensity.grouped",
+      "name": "thickness"
+    }, {
+      "type": "atlas.values",
+      "name": "rh_vertices"
+    }, {
+      "type": "atlas.labels",
+      "name": "atlas-labels"
+    }], [{
+      "type": "surface",
+      "name": "freesurfer_curvature"
+    }, {
+      "type": "intensity.grouped",
+      "name": "thickness"
+    }, {
+      "type": "atlas.values",
+      "name": "vertices"
+    }, {
+      "type": "atlas.labels",
+      "name": "atlas-labels"
+    }]
+  ]
+}
