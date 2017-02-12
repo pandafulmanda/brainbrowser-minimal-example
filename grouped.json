@@ -56,5 +56,22 @@
       "type": "atlas.labels",
       "name": "atlas-labels"
     }]
-  ]
+  ],
+  "timepoints": [
+    {"name": "t00",
+     "models": ["rh_freesurfer_curvature.vtk", "freesurfer_curvature.vtk"],
+     "file": " https://dl.dropboxusercontent.com/u/9020198/data/lesions/ms69/t00/cortex/data.csv",
+     "type": "intensity.grouped",
+     "id_column":" ID",
+     "value_column": " thickness (thickinthehead)"
+   },
+   {"name": "t07",
+    "models": ["rh_freesurfer_curvature.vtk", "freesurfer_curvature.vtk"],
+    "file": " https://dl.dropboxusercontent.com/u/9020198/data/lesions/ms69/t07/cortex/data.csv",
+    "type": "intensity.grouped",
+    "id_column":" ID",
+    "value_column": " thickness (thickinthehead)"
+   }
+ ],
+ "colorMap": "RedBlue"
 }

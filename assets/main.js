@@ -98,9 +98,8 @@ function loadAtlasIntensityData(viewer, bbConfig, model_data){
 
 function loadData(viewer, config){
 
-  var colorMapIndex = 0;
+  var colorMapIndex = 1;
   var bbConfig = new Config(config);
-
 
   viewer.addEventListener('displaymodel', function(brainBrowserModel) {
     loadIntensityData(viewer, bbConfig, brainBrowserModel.model_data);
@@ -134,6 +133,38 @@ function loadData(viewer, config){
 
 function setupGui(viewer, config){
   var gui = new dat.GUI();
+  window.config = config
+  // load all the atlas mappers
+  config.timepoints.forEach(function(info, index, arr){
+    d3.csv(info.file, function(err, data){
+      var mapper = {}
+      data.forEach(function(val){
+        mapper[parseInt(val[info.id_column])] = parseFloat(val[info.value_column])
+      });
+      arr[index]["mapper"] = mapper
+    })
+  })
+  // add a gui item to switch timepoints
+  var tps = _.map(config.timepoints, function(v){return v.name})
+  var time_options = {"timepoint":tps[0]}
+  gui.add(time_options, "timepoint", tps)
+     .onChange(function(newVal){
+        var d = _.find(config.timepoints, {name:newVal})
+        _.map(d.models, function(v){
+          //console.log("changing color of", v)
+          colorChanger(v, d.mapper)
+        })
+     })
+
+  //initialize colorbar
+  $(".dg.main.a ul").append('<li style="height: 40px;"><div id="color-bar">empty colorbar</div></li>')
+
+  viewer.addEventListener("changeintensityrange", function(event) {
+      var intensity_data = event.intensity_data;
+      var canvas = viewer.color_map.createElement(intensity_data.range_min, intensity_data.range_max);
+      canvas.id = "spectrum-canvas";
+      $("#color-bar").html(canvas);
+    });
 
   var THREE = BrainBrowser.SurfaceViewer.THREE;
 
@@ -188,6 +219,11 @@ function setupGui(viewer, config){
       viewer.setIntensityRange(intensity_data, intensity_data.min, newMax)
     });
 
+    //make colorbar
+    var canvas = viewer.color_map.createElement(intensity_data.range_min, intensity_data.range_max);
+    canvas.id = "spectrum-canvas";
+    $("#color-bar").html(canvas);
+
   });
 }
 
@@ -228,24 +264,12 @@ function getSpinner(){
 }
 var target = document.getElementById('brainbrowser')
 
-function loadAtlasCSV(url){
-  d3.csv(url, function(err, data){
-    window.data = {}
-    data.forEach(function(val, idx, arr){
-      window.data[parseInt(val[" ID"])] = parseFloat(val[" thickness (thickinthehead)"])
-    });
-  });
-}
-
-//loadAtlasCSV("https://dl.dropboxusercontent.com/u/9020198/data/lesions/ms69/t07/cortex/data.csv")
-
 function colorChanger(model_name, mapper){
   var intensity_data = window.viewer.model_data.get(model_name).intensity_data
   intensity_data[0].atlasValuesByVertex.forEach(function(val, idx, arr){
     intensity_data[0].values[idx] = mapper[val]
   })
   window.viewer.updateColors({
-            model_name: model_name,
-            complete: true
+            model_name: model_name
           });
 }

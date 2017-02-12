@@ -23,6 +23,10 @@ BrainBrowser.config.set("color_maps", [
   {
     name: "Green",
     url: "color-maps/green.txt",
+  },
+  {
+    name: "RedBlue",
+    url: "color-maps/redblue.txt",
   }
 ]);
 
@@ -37,13 +41,13 @@ BrainBrowser.SurfaceViewer.parseAtlasData = function(data, options, callback) {
   //   error_message = "error in SurfaceViewer configuration.\n" +
   //     "Intensity data worker URL for " + type + " not defined.\n" +
   //     "Use 'BrainBrowser.config.set(\"intensity_data_types." + type + ".worker\", ...)' to set it.";
-    
+
   //   BrainBrowser.events.triggerEvent("error", { message: error_message });
   //   throw new Error(error_message);
   // }
 
   var worker = new Worker(BrainBrowser.SurfaceViewer.worker_urls[worker_url_type]);
-  
+
   worker.addEventListener("message", function(e) {
     callback(e.data);
     worker.terminate();
