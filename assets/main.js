@@ -118,7 +118,7 @@ function loadData(viewer, config){
   });
 
   viewer.addEventListener("loadcolormap", function(event) {
-    viewer.color_map.clamp = false;
+    viewer.color_map.clamp = true; //clamp=false means don't color outside range
   });
 
   if(config.colorMap){
