@@ -10,7 +10,7 @@ BrainBrowser.SurfaceViewer.start('brainbrowser', handleBrainz);
 // Pulled out this function from the start call so that it's not so nested.
 function handleBrainz(viewer) {
   var inputs = queryStringToHash();
-
+  window.viewer = viewer //AK: for debugging in console
   // Start rendering the scene.
   viewer.render();
   viewer.setClearColor(COLORS.WHITE);
@@ -71,9 +71,11 @@ function loadAtlasIntensityData(viewer, bbConfig, model_data){
   };
 
   const atlasData = bbConfig.getForLink('atlas.values', modelOption);
+
   const atlasIntensities = bbConfig.getForLink('intensity.grouped', modelOption);
 
   if(atlasData && atlasIntensities){
+
     async.parallel({
       atlas: loadDataFromSettings(atlasData, model_data),
       values: loadDataFromSettings(atlasIntensities, model_data)
@@ -225,3 +227,25 @@ function getSpinner(){
   return spinner
 }
 var target = document.getElementById('brainbrowser')
+
+function loadAtlasCSV(url){
+  d3.csv(url, function(err, data){
+    window.data = {}
+    data.forEach(function(val, idx, arr){
+      window.data[parseInt(val[" ID"])] = parseFloat(val[" thickness (thickinthehead)"])
+    });
+  });
+}
+
+//loadAtlasCSV("https://dl.dropboxusercontent.com/u/9020198/data/lesions/ms69/t07/cortex/data.csv")
+
+function colorChanger(model_name, mapper){
+  var intensity_data = window.viewer.model_data.get(model_name).intensity_data
+  intensity_data[0].atlasValuesByVertex.forEach(function(val, idx, arr){
+    intensity_data[0].values[idx] = mapper[val]
+  })
+  window.viewer.updateColors({
+            model_name: model_name,
+            complete: true
+          });
+}
