@@ -1,0 +1,77 @@
+{
+  "data": [{
+    "location": "./models/vtk/rh_freesurfer_curvature.vtk"
+  }, {
+    "location": "./models/vtk/freesurfer_curvature.vtk"
+  }, {
+    "location": "./models/rh_vertices.csv",
+    "type": "atlas.values",
+    "options": {
+      "columns": ["label ID"]
+    }
+  }, {
+    "location": "./models/vertices.csv",
+    "type": "atlas.values",
+    "options": {
+      "columns": ["label ID"]
+    }
+  }, {
+    "location": "./models/data.csv",
+    "type": "atlas.labels",
+    "name": "atlas-labels",
+    "options": {
+      "columns": ["name", "ID"]
+    }
+  }, {
+    "location": "./models/data.csv",
+    "type": "intensity.grouped",
+    "name": "thickness",
+    "options": {
+      "columns": ["ID", "thickness (thickinthehead)"]
+    }
+  }],
+  "links": [
+    [{
+      "type": "surface",
+      "name": "rh_freesurfer_curvature"
+    }, {
+      "type": "intensity.grouped",
+      "name": "thickness"
+    }, {
+      "type": "atlas.values",
+      "name": "rh_vertices"
+    }, {
+      "type": "atlas.labels",
+      "name": "atlas-labels"
+    }], [{
+      "type": "surface",
+      "name": "freesurfer_curvature"
+    }, {
+      "type": "intensity.grouped",
+      "name": "thickness"
+    }, {
+      "type": "atlas.values",
+      "name": "vertices"
+    }, {
+      "type": "atlas.labels",
+      "name": "atlas-labels"
+    }]
+  ],
+  "timepoints": [
+    {"name": "t00",
+     "models": ["rh_freesurfer_curvature.vtk", "freesurfer_curvature.vtk"],
+     "file": " https://dl.dropboxusercontent.com/u/9020198/data/lesions/ms69/t00/cortex/data.csv",
+     "type": "intensity.grouped",
+     "id_column":" ID",
+     "value_column": " thickness (thickinthehead)"
+   },
+   {"name": "t07",
+    "models": ["rh_freesurfer_curvature.vtk", "freesurfer_curvature.vtk"],
+    "file": " https://dl.dropboxusercontent.com/u/9020198/data/lesions/ms69/t07/cortex/data.csv",
+    "type": "intensity.grouped",
+    "id_column":" ID",
+    "value_column": " thickness (thickinthehead)"
+   }
+ ],
+ "colorMap": "RedBlue"
+}

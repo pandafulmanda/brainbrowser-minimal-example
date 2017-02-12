@@ -3,20 +3,30 @@
     "location": "./models/vtk/rh_freesurfer_curvature.vtk"
   }, {
     "location": "./models/vtk/freesurfer_curvature.vtk"
+  }, {
+    "location": "./models/rh_vertices.csv",
+    "options": {
+      "columns": ["freesurfer convexity (sulc)", "freesurfer thickness", "freesurfer curvature"]
+    }
+  }, {
+    "location": "./models/vertices.csv",
+    "options": {
+      "columns": ["freesurfer convexity (sulc)", "freesurfer thickness", "freesurfer curvature"]
+    }
   }],
-  "encoding": {
-    "intensity": [{
-      "location": "./models/rh_vertices.csv",
-      "field": "rh_freesurfer_curvature.vtk",
-      "options": {
-        "columns": ["freesurfer convexity (sulc)", "freesurfer thickness", "freesurfer curvature"]
-      }
+  "links": [
+    [{
+      "type": "surface",
+      "name": "rh_freesurfer_curvature"
     }, {
-      "location": "./models/vertices.csv",
-      "field": "freesurfer_curvature.vtk",
-      "options": {
-        "columns": ["freesurfer convexity (sulc)", "freesurfer thickness", "freesurfer curvature"]
-      }
+      "type": "intensity",
+      "name": "rh_vertices"
+    }], [{
+      "type": "surface",
+      "name": "freesurfer_curvature"
+    }, {
+      "type": "intensity",
+      "name": "vertices"
     }]
-  } 
+  ]
 }
