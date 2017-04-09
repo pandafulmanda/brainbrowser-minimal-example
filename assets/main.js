@@ -159,12 +159,31 @@ function setupGui(viewer, config){
   //initialize colorbar
   $(".dg.main.a ul").append('<li style="height: 40px;"><div id="color-bar">empty colorbar</div></li>')
 
-  viewer.addEventListener("changeintensityrange", function(event) {
+    viewer.addEventListener("changeintensityrange", function(event) {
       var intensity_data = event.intensity_data;
       var canvas = viewer.color_map.createElement(intensity_data.range_min, intensity_data.range_max);
       canvas.id = "spectrum-canvas";
       $("#color-bar").html(canvas);
     });
+
+  // Screenshot Button
+  var screenshot = { 'Capture Image':function(){ window.open(document.getElementsByTagName("canvas")[0].toDataURL("image/png", "final")) }};
+  gui.add(screenshot,'Capture Image');
+
+  // Rotation Options
+  var rotation = gui.addFolder("Rotation")
+  rotation.add(window.viewer.autorotate, "z")
+  rotation.add(window.viewer.autorotate, "y")
+  rotation.add(window.viewer.autorotate, "x")
+
+  // Background Color Option
+  var bg = config.background_color || "WHITE"
+  viewer.setClearColor(COLORS[bg]);
+  var colorSelect = {"background color":bg}
+  var cs = gui.add(colorSelect,"background color", ["WHITE", "BLACK"])
+  cs.onChange(function(coloropt){
+    viewer.setClearColor(COLORS[coloropt])
+  })
 
   var THREE = BrainBrowser.SurfaceViewer.THREE;
 
