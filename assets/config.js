@@ -79,7 +79,7 @@
 
 
   class Config {
-    constructor (configObject) {  
+    constructor (configObject) {
       const config = fillInConfig(configObject);
       const data = _.mapKeys(config.data, lookupDataKey);
 
